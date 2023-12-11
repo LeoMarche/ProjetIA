@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 from torchvision.transforms import Resize
 from torchvision.io import ImageReadMode
 
-n_epochs = 3
+n_epochs = 1
 batch_size_train = 8
 batch_size_test = 1000
 learning_rate = 0.01
