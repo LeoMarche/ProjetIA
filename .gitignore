@@ -1,2 +1,3 @@
 detection_saillance/dataset
 __pycache__
+*.pth
