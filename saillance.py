@@ -10,6 +10,7 @@ from functools import partial
 import argparse
 import matplotlib.pyplot as plt
 import points_interets
+import numpy as np
 
 ## Define the Neural Network architecture (import from detection_saillance/premade.py)
 class Net(nn.Module):
@@ -67,6 +68,10 @@ if __name__ == "__main__":
     device = get_optimal_device()
     model = load_premade_model(args.weights, device)
     r = inference(model, args.image, device)
+    r = r * (255/np.max(r))
+    r = (r > 50) * r
+    
+
     plt.imshow(r, cmap='gray', vmin=0, vmax=255)
     plt.title("saliency result")
     plt.show()

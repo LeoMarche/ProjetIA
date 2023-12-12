@@ -1,7 +1,18 @@
 import numpy as np
 from sklearn.mixture import GaussianMixture
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
+
+def get_bic_input_from_saliency(saliency):
+    rows, columns = np.where(saliency != 0)
+    lpoints = []
+    for i in range(len(rows)):
+        arr = [rows[i], columns[i]]
+        for _ in range(int(saliency[rows[i], columns[i]])):
+            lpoints.append(arr)
+    return np.array(lpoints)
+    
 
 # Get coordinates satisfying a numpy condition as an array
 def conditioned_coords_as_array(np_condition):
@@ -10,12 +21,34 @@ def conditioned_coords_as_array(np_condition):
 
 # Determines the number of clusters to detect in the saliency array using BIC
 def get_number_clusters(saliency_array):
-    n_components = range(1, 10)
+    n_components = range(1, 5)
     max_saliency = np.max(saliency_array)
-    bic_input = conditioned_coords_as_array(saliency_array > max_saliency * 0.5)
+    # bic_input = conditioned_coords_as_array(saliency_array > max_saliency * 0.5)
+    # bic_input = saliency_array
+    bic_input = get_bic_input_from_saliency(saliency_array)
     models = [GaussianMixture(n, covariance_type='full').fit(bic_input) for n in n_components]
-    bic_scores = [model.bic(bic_input) for model in models]
+    bic_scores = [model.aic(bic_input) for model in models]
+    print(bic_scores)
     return n_components[np.argmin(bic_scores)]
+
+def get_kmeans_model(clustering_input, clustering_weights):
+    n_components = range(1, 10)
+    elbow = []
+    models = []
+    for k in n_components:
+        kmeans = KMeans(k, n_init='auto')
+        kmeans.fit(clustering_input, sample_weight=clustering_weights)
+        models.append(kmeans)
+        elbow.append(kmeans.inertia_)
+    d = abs(elbow[1] - elbow[0])
+    for i in n_components:
+        if abs(elbow[i+1] - elbow[i]) < d / 3:
+            return models[i]
+    return models[3]
+
+def get_DBSCAN_model(clustering_input, clustering_weights):
+    return DBSCAN(eps=3, min_samples=2).fit(clustering_input, sample_weight=clustering_weights)
+
 
 # Optional function to show plot of clusters
 def show_clusters(X, labels, centroids):
@@ -32,8 +65,7 @@ def show_clusters(X, labels, centroids):
 def interest_clusters(saliency_array):
     clustering_input = conditioned_coords_as_array(saliency_array > 0)  # positive pixel coordinates
     clustering_weights = saliency_array[saliency_array > 0]             # use saliency as weight for each pixel
-    kmeans = KMeans(get_number_clusters(saliency_array), n_init='auto')
-    kmeans.fit(clustering_input, sample_weight=clustering_weights)
+    kmeans = get_kmeans_model(clustering_input, clustering_weights)
     show_clusters(clustering_input, kmeans.labels_, kmeans.cluster_centers_)
 
     results = []
