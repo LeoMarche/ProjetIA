@@ -9,6 +9,7 @@ import torchvision.models as models
 from functools import partial
 import argparse
 import matplotlib.pyplot as plt
+import points_interets
 
 ## Define the Neural Network architecture (import from detection_saillance/premade.py)
 class Net(nn.Module):
@@ -67,5 +68,7 @@ if __name__ == "__main__":
     model = load_premade_model(args.weights, device)
     r = inference(model, args.image, device)
     plt.imshow(r, cmap='gray', vmin=0, vmax=255)
+    plt.title("saliency result")
     plt.show()
 
+    interest_clusters = points_interets.interest_clusters(r)

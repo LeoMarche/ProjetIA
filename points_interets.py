@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.mixture import GaussianMixture
 from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
 
 # Get coordinates satisfying a numpy condition as an array
 def conditioned_coords_as_array(np_condition):
@@ -16,6 +17,12 @@ def get_number_clusters(saliency_array):
     bic_scores = [model.bic(bic_input) for model in models]
     return n_components[np.argmin(bic_scores)]
 
+# Optional function to show plot of clusters
+def show_clusters(X, labels, centroids):
+    plt.scatter(X[:, 1], X[:, 0], c=labels, cmap='viridis', s=50, alpha=0.8)
+    plt.scatter(centroids[:, 1], centroids[:, 0], c='red', marker='X', s=200, label='Centroids')
+    plt.title("clustering result")
+    plt.show()
 
 # Detect interest points in the saliency array using weighted KMeans clustering
 # Returns a list of clusters containing:
@@ -27,7 +34,8 @@ def interest_clusters(saliency_array):
     clustering_weights = saliency_array[saliency_array > 0]             # use saliency as weight for each pixel
     kmeans = KMeans(get_number_clusters(saliency_array), n_init='auto')
     kmeans.fit(clustering_input, sample_weight=clustering_weights)
-    
+    show_clusters(clustering_input, kmeans.labels_, kmeans.cluster_centers_)
+
     results = []
     for cluster_index in range(len(kmeans.cluster_centers_)):
         cluster_data = {}
