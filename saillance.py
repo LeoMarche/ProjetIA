@@ -66,6 +66,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("weights")
     parser.add_argument("image")
+    parser.add_argument("ratio")
     args = parser.parse_args()
 
     device = get_optimal_device()
@@ -79,10 +80,12 @@ if __name__ == "__main__":
     plt.show()
 
     interest_clusters = points_interets.interest_clusters(r)
-    print([i['centroid'] for i in interest_clusters])
-
-    crop_tuple = recadrage.get_crop_tuple_using_1D_saliency(3, r, initial_shape)
+    crop_tuple = recadrage.get_crop_tuple_using_least_square_distance_to_interest_points(float(args.ratio), r.shape, initial_shape, [i['centroid'] for i in interest_clusters])
     print(crop_tuple)
-    cv2.imshow("Image Recadrée", recadrage.crop_image(args.image, crop_tuple))
+    cv2.imshow("cropped using least square", recadrage.crop_image(args.image, crop_tuple))
+
+    crop_tuple = recadrage.get_crop_tuple_using_1D_saliency(float(args.ratio), r, initial_shape)
+    print(crop_tuple)
+    cv2.imshow("cropped_1D", recadrage.crop_image(args.image, crop_tuple))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
