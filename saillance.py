@@ -10,7 +10,9 @@ from functools import partial
 import argparse
 import matplotlib.pyplot as plt
 import points_interets
+import recadrage
 import numpy as np
+import cv2
 
 ## Define the Neural Network architecture (import from detection_saillance/premade.py)
 class Net(nn.Module):
@@ -52,12 +54,13 @@ def load_premade_model(weight_path, device):
 ## Compute the saillance detection on a signe image
 def inference(model, image_path, device):
     data = torch.div(read_image(image_path, ImageReadMode.RGB).type(torch.cuda.FloatTensor), 255.0)
+    initial_shape = (data.shape[-1], data.shape[-2])
     r = Resize(480, antialias=True)
     img = r.forward(data).unsqueeze(0)
     img.to(device)
     res = model(img)
     tr_res = torch.mul(res, 255.0).cpu()
-    return r.forward(tr_res).squeeze().detach().numpy()
+    return tr_res.squeeze().detach().numpy(), initial_shape
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -67,13 +70,19 @@ if __name__ == "__main__":
 
     device = get_optimal_device()
     model = load_premade_model(args.weights, device)
-    r = inference(model, args.image, device)
+    r, initial_shape = inference(model, args.image, device)
     r = r * (255/np.max(r))
     r = (r > 50) * r
     
-
     plt.imshow(r, cmap='gray', vmin=0, vmax=255)
     plt.title("saliency result")
     plt.show()
 
     interest_clusters = points_interets.interest_clusters(r)
+    print([i['centroid'] for i in interest_clusters])
+
+    crop_tuple = recadrage.get_crop_tuple_using_1D_saliency(3, r, initial_shape)
+    print(crop_tuple)
+    cv2.imshow("Image Recadrée", recadrage.crop_image(args.image, crop_tuple))
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

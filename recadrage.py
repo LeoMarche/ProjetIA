@@ -2,6 +2,47 @@ import cv2
 import numpy as np
 from scipy.optimize import minimize
 
+def crop_image(image, crop_tuple):
+    img = cv2.imread(image)
+    x, y, w, h = crop_tuple
+    return img[x:x+w, y:y+h]
+
+def get_crop_tuple_using_1D_saliency(ratio, saliency, initial_shape):
+    rows, cols = saliency.shape[0], saliency.shape[1]
+    if cols == int(rows*ratio):
+        return (0, 0, initial_shape[1], initial_shape[0])
+    # 1D sliding windows on rows
+    if cols < int(rows*ratio):
+        sumrows = np.sum(saliency, 1)
+        nrows = int(cols/ratio)
+        max_s = np.sum(sumrows[0:nrows])
+        tmp_s = max_s
+        s = [tmp_s]
+        for r in range(1, rows-nrows+1):
+            tmp_s = tmp_s - sumrows[r-1] + sumrows[r+nrows-1]
+            s.append(tmp_s)
+            if tmp_s > max_s:
+                max_s = tmp_s
+        ind = np.where(np.array(s) == max_s)[0]
+        best_r = ind[len(ind)//2]
+        return (int(best_r/rows*initial_shape[1]), 0, int(initial_shape[0]/ratio), initial_shape[0])
+    
+    # 1D sliding windows on cols
+    sumcols = np.sum(saliency, 0)
+    ncols = int(rows * ratio)
+    s = []
+    max_s = np.sum(sumcols[0:ncols])
+    tmp_s = max_s
+    for c in range(1, cols-ncols+1):
+        tmp_s = tmp_s - sumcols[c-1] + sumcols[c+ncols-1]
+        s.append(tmp_s)
+        if tmp_s > max_s:
+            max_s = tmp_s
+    ind = np.where(np.array(s) == max_s)[0]
+    best_c = ind[len(ind)//2]
+    return (0, int(best_c/cols*initial_shape[0]), initial_shape[1], int(initial_shape[1]*ratio))
+    
+
 class ImageTransformation:
     def apply_transform(self, src, params):
         # Extract parameters
@@ -84,8 +125,9 @@ def apply_recadrage(image, centroids, ratio):
 
     return roi
 
-# Example usage:
-ratio = 0.1
-image = cv2.imread(r"imgest2.jpg")
-centroids = np.array([(0,0), (2500,1667)])
-Idef_result = apply_recadrage(image, centroids, ratio)
+if __name__ == "__main__":
+    # Example usage:
+    ratio = 0.1
+    image = cv2.imread(r"imgest2.jpg")
+    centroids = np.array([(0,0), (2500,1667)])
+    Idef_result = apply_recadrage(image, centroids, ratio)
