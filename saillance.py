@@ -18,8 +18,8 @@ import cv2
 class Net(nn.Module):
     def __init__(self):
         super(Net,self).__init__()
-        self.fine_features=models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1).features[0:30]
-        self.coarse_features=models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1).features[0:30]
+        self.fine_features=models.vgg16().features[0:30]
+        self.coarse_features=models.vgg16().features[0:30]
 
         self.upsample=partial(F.interpolate, mode='bilinear', antialias=True)
         self.integrate=nn.Conv2d(1024,1,(1,1))
