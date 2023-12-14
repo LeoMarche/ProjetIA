@@ -7,7 +7,7 @@ This repository contains three main files:
 - `points_interets.py`: contains all the code necessary to extract interest points from saliency map.
 - `recadrage.py`: contains all the code used to crop an image based on a provided ratio and saliency informations (saliency map or interest points).
 
-## How to use
+## Install dependencies
 
 Start by installing the require python packages using:
 ```
@@ -16,4 +16,9 @@ python3 -m pip install -r requirements.txt
 
 This can be executed in a venv in order to limit these packages to a venv.
 
-Once the dependencies installed, run (it will make window appear, close them to continue the algorithm) `python3 ./saillance.py ./detection_saillance/results/premade.pth ./imgtest1.jpg 1.5` in order to run the algorithm and to intelligently crop the imgtest1.jpg image at a 1.5 ratio.
+## How to use
+
+Once the dependencies installed, run `python3 saillance.py <path_to_model_weights> <path_to_image> <resize_ratio>`  
+It will make windows appear to show intermediate results, close them to continue the algorithm
+
+Example: `python3 ./saillance.py ./premade.pth ./imgtest1.jpg 1.5` in order to run the algorithm and to intelligently crop the imgtest1.jpg image at a 1.5 ratio.
