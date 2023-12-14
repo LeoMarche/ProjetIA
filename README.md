@@ -16,6 +16,11 @@ python3 -m pip install -r requirements.txt
 
 This can be executed in a venv in order to limit these packages to a venv.
 
+## Retrieve weights
+
+In order for the algorithm to work, one must first retrieve the weights of the saliency detection neural network.
+The weights are available [here](https://github.com/LeoMarche/ProjetIA/releases/download/poc/premade.pth).
+
 ## How to use
 
 Once the dependencies installed, run `python3 saillance.py <path_to_model_weights> <path_to_image> <resize_ratio>`  
