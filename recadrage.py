@@ -47,12 +47,13 @@ def square_distance_sum(params, *args):
         ratio = args[3]
         distance = 0
         X1, X2, Y1 = params
-        X1 = min(max(X1, 0), args[0])
-        X2 = max(min(X2, args[0]), 0)
-        Y1 = max(min(Y1, args[1]), 0)
+        X1 = min(max(X1, 0), args[1])
+        X2 = max(min(X2, args[1]), 0)
+        Y1 = max(min(Y1, args[0]), 0)
         if X1 > X2:
             X2, X1 = X1, X2
         Y2 = Y1 + (X2-X1)*ratio
+        Y2 = max(min(Y2, args[0]), 0)
         
         for c in centroids:
             XC = c[0]
@@ -80,9 +81,9 @@ def get_crop_tuple_using_least_square_distance_to_interest_points(ratio, salienc
     p = opt_result.x
 
     X1, X2, Y1 = p[0], p[1], p[2]
-    X1 = min(max(X1, 0), initial_shape[0])
-    X2 = max(min(X2, initial_shape[0]), 0)
-    Y1 = max(min(Y1, initial_shape[1]), 0)
+    X1 = min(max(X1, 0), initial_shape[1])
+    X2 = max(min(X2, initial_shape[1]), 0)
+    Y1 = max(min(Y1, initial_shape[0]), 0)
     if X1 > X2:
         X2, X1 = X1, X2
 
