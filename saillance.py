@@ -80,6 +80,9 @@ if __name__ == "__main__":
     plt.show()
 
     interest_clusters = points_interets.interest_clusters(r)
+    for i in range(len(interest_clusters)):
+        crop_tuple = recadrage.get_crop_tuple_one_center(float(args.ratio), r, initial_shape, interest_clusters[i])
+        cv2.imshow("cropped using one center "+str(i), recadrage.crop_image(args.image, crop_tuple))
     crop_tuple = recadrage.get_crop_tuple_using_least_square_distance_to_interest_points(float(args.ratio), r.shape, initial_shape, [i['centroid'] for i in interest_clusters])
     print(crop_tuple)
     cv2.imshow("cropped using least square", recadrage.crop_image(args.image, crop_tuple))

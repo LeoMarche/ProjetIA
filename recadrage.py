@@ -90,6 +90,53 @@ def get_crop_tuple_using_least_square_distance_to_interest_points(ratio, salienc
 
     return (x, y, w, h)
 
+def compute_average_weighted_distance(points, weights, centroid):
+    dist = 0
+    for ipo in range(len(points)):
+        po = points[ipo]
+        dist += np.linalg.norm(np.array(po) - np.array(centroid)) ** 2 * weights[ipo]
+    return np.sqrt(dist / np.sum(weights))
+
+def get_crop_tuple_one_center(ratio, saliency_map, initial_shape, centroid_map):
+    pixel_coords = centroid_map['pixel_coords']
+    weights = [saliency_map[c[0]][c[1]] for c in pixel_coords]
+    av_dist = compute_average_weighted_distance(pixel_coords, weights, centroid_map['centroid'])
+    print(centroid_map['centroid'])
+    print(saliency_map.shape)
+    print(initial_shape)
+    av_dist_ratio = av_dist * 5
+
+    if ratio > 1:
+        ideal_row_nr = av_dist_ratio
+        ideal_col_nr = ideal_row_nr * ratio
+    else:
+        ideal_col_nr = av_dist_ratio
+        ideal_row_nr = ideal_col_nr / ratio
+
+    if centroid_map['centroid'][0] + ideal_row_nr / 2 > saliency_map.shape[0]:
+        rat = saliency_map.shape[0] - centroid_map['centroid'][0] * 2 / ideal_row_nr
+        ideal_row_nr *= rat
+        ideal_col_nr *= rat
+    if centroid_map['centroid'][0] - ideal_row_nr / 2 < 0:
+        rat = centroid_map['centroid'][0] * 2 / ideal_row_nr
+        ideal_row_nr *= rat
+        ideal_col_nr *= rat
+    if centroid_map['centroid'][1] + ideal_col_nr / 2 > saliency_map.shape[1]:
+        rat = saliency_map.shape[1] - centroid_map['centroid'][1] * 2 / ideal_col_nr
+        ideal_row_nr *= rat
+        ideal_col_nr *= rat
+    if centroid_map['centroid'][1] - ideal_col_nr / 2 < 0:
+        rat = centroid_map['centroid'][1] * 2 / ideal_col_nr
+        ideal_row_nr *= rat
+        ideal_col_nr *= rat
+    
+    x = int((centroid_map['centroid'][0] - ideal_row_nr / 2) * initial_shape[1] / saliency_map.shape[0])
+    y = int((centroid_map['centroid'][1] - ideal_col_nr / 2) * initial_shape[0] / saliency_map.shape[1])
+    w = int(ideal_row_nr * initial_shape[1] / saliency_map.shape[0])
+    h = int(ideal_col_nr * initial_shape[0] / saliency_map.shape[1])
+    
+    return (x,y,w,h)
+
 if __name__ == "__main__":
     # Example usage:
     ratio = 0.1
