@@ -2,6 +2,7 @@ import torch
 from torchvision.io import read_image
 from torchvision.transforms import Resize
 from torchvision.io import ImageReadMode
+import torchvision.transforms as transforms
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -11,6 +12,7 @@ import argparse
 import matplotlib.pyplot as plt
 import points_interets
 import recadrage
+import aesthetics
 import numpy as np
 import cv2
 
@@ -53,7 +55,10 @@ def load_premade_model(weight_path, device):
 
 ## Compute the saillance detection on a signe image
 def inference(model, image_path, device):
-    data = torch.div(read_image(image_path, ImageReadMode.RGB).type(torch.cuda.FloatTensor), 255.0)
+    if device.type == 'cuda':
+        data = torch.div(read_image(image_path, ImageReadMode.RGB).type(torch.cuda.FloatTensor), 255.0)
+    else:
+        data = torch.div(read_image(image_path, ImageReadMode.RGB).type(torch.FloatTensor), 255.0)
     initial_shape = (data.shape[-1], data.shape[-2])
     r = Resize(480, antialias=True)
     img = r.forward(data).unsqueeze(0)
@@ -64,13 +69,14 @@ def inference(model, image_path, device):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("weights")
+    parser.add_argument("feature_det_weights")
+    parser.add_argument("aesthetics_weights")
     parser.add_argument("image")
     parser.add_argument("ratio")
     args = parser.parse_args()
 
     device = get_optimal_device()
-    model = load_premade_model(args.weights, device)
+    model = load_premade_model(args.feature_det_weights, device)
     r, initial_shape = inference(model, args.image, device)
     r = r * (255/np.max(r))
     r = (r > 50) * r
@@ -80,15 +86,33 @@ if __name__ == "__main__":
     plt.show()
 
     interest_clusters = points_interets.interest_clusters(r)
+
+    potential_crops = []
+
     for i in range(len(interest_clusters)):
         crop_tuple = recadrage.get_crop_tuple_one_center(float(args.ratio), r, initial_shape, interest_clusters[i])
-        cv2.imshow("cropped using one center "+str(i), recadrage.crop_image(args.image, crop_tuple))
+        potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
     crop_tuple = recadrage.get_crop_tuple_using_least_square_distance_to_interest_points(float(args.ratio), r.shape, initial_shape, [i['centroid'] for i in interest_clusters])
-    print(crop_tuple)
-    cv2.imshow("cropped using least square", recadrage.crop_image(args.image, crop_tuple))
+    potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
 
     crop_tuple = recadrage.get_crop_tuple_using_1D_saliency(float(args.ratio), r, initial_shape)
-    print(crop_tuple)
-    cv2.imshow("cropped_1D", recadrage.crop_image(args.image, crop_tuple))
+    potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
+
+    resi = Resize((256, 256), antialias=True)
+
+    for i in range(len(potential_crops)):
+        tmp = cv2.cvtColor(potential_crops[i], cv2.COLOR_BGR2RGB)
+        tens = resi.forward(torch.mul(transforms.ToTensor()(tmp), 255.0).type(torch.IntTensor).unsqueeze(0))
+        potential_crops[i] = tens
+    
+    inp = torch.Tensor(len(potential_crops), 3, 256, 256)
+    torch.cat(potential_crops, out=inp)
+    print(inp[0].shape, potential_crops[0].shape)
+
+    aes_model = aesthetics.load_premade_model(args.aesthetics_weights, device)
+    res = aesthetics.inference_torch(aes_model, inp, device)
+
+    print(res)
+
     cv2.waitKey(0)
     cv2.destroyAllWindows()
