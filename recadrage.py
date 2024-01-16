@@ -93,8 +93,9 @@ def get_crop_tuple_using_least_square_distance_to_interest_points(ratio, salienc
     return (x, y, w, h)
 
 def get_crop_tuple_least_square_distance_to_best_interest_points(ratio, saliency_shape, initial_shape, centroids_data):
-    centroids_avg_saliency = np.array(map(lambda centroid: centroid['avg_saliency'], centroids_data))
-    best_interest_indexes = np.argpartition(centroids_avg_saliency, -3)[-3:]
+    centroids_avg_saliency = np.array(list(map(lambda centroid: centroid['avg_saliency'], centroids_data)))
+    n_interest_points = min(2, len(centroids_avg_saliency))
+    best_interest_indexes = np.argpartition(centroids_avg_saliency, -n_interest_points)[-n_interest_points:]
     best_centroids = [centroids_data[idx]['centroid'] for idx in best_interest_indexes]
     return get_crop_tuple_using_least_square_distance_to_interest_points(ratio, saliency_shape, initial_shape, best_centroids)
 
@@ -149,30 +150,36 @@ def get_random_point_based_on_saliency(saliency_map):
     rows, columns = np.where(saliency_map > 0)
     points_array = np.asarray(list(zip(rows, columns)))
     total_saliency = np.sum(saliency_map)
-    probabilities = [saliency_map[col][row] / total_saliency for row, col in points_array]
-    random_index = random.choices(points_array, probabilities)[0]
-    return points_array[random_index]
+    probabilities = [saliency_map[row][col] / total_saliency for row, col in points_array]
+    return random.choices(points_array, probabilities)[0]
 
-# CASINO
 def get_crop_tuple_random(ratio, saliency_map, initial_shape):
     random_point = get_random_point_based_on_saliency(saliency_map) # row, column
-    max_height = min(saliency_map.shape[0], int(saliency_map.shape[1] / ratio))
-    random_crop_height = int(random.uniform(0.5 * max_height, max_height))
-    random_crop_width = int(random_crop_height * ratio)
+    max_width = min(saliency_map.shape[0], int(saliency_map.shape[1] / ratio))
+    crop_width = int(random.uniform(0.5 * max_width, max_width))
+    crop_height = int(crop_width * ratio)
     
-    crop_start_X, crop_start_Y = int(random_point[1] - random_crop_width / 2), int(random_point[0] - random_crop_height / 2)
-    
-    if random_point[1] + 1 > saliency_map.shape[1] - random_crop_width / 2:
-        crop_start_X = int(saliency_map.shape[1] - random_crop_width / 2 - 1)
-    elif random_point[1] + 1 > random_crop_width / 2:
+    crop_start_X, crop_start_Y = int(random_point[0] - crop_width / 2), int(random_point[1] - crop_height / 2)
+
+    if random_point[0] + 1 > saliency_map.shape[0] - crop_width / 2:
+        crop_start_X = int(saliency_map.shape[0] - crop_width - 1)
+    elif random_point[0] + 1 < crop_width / 2:
         crop_start_X = 0
 
-    if random_point[0] + 1 > saliency_map.shape[0] - random_crop_height / 2:
-        crop_start_Y = int(saliency_map.shape[0] - random_crop_height / 2 - 1)
-    elif random_point[0] + 1 > random_crop_height / 2:
+    if random_point[1] + 1 > saliency_map.shape[1] - crop_height / 2:
+        crop_start_Y = int(saliency_map.shape[1] - crop_height - 1)
+    elif random_point[1] + 1 < crop_height / 2:
         crop_start_Y = 0
 
-    return crop_start_X, random_crop_width, crop_start_Y, random_crop_height
+    rescale_ratio_X = initial_shape[1] / saliency_map.shape[0]
+    rescale_ratio_Y = initial_shape[0] / saliency_map.shape[1]
+
+    crop_start_X = int(crop_start_X * rescale_ratio_X)
+    crop_start_Y = int(crop_start_Y * rescale_ratio_Y)
+    crop_width = int(crop_width * rescale_ratio_X)
+    crop_height = int(crop_height * rescale_ratio_Y)
+
+    return crop_start_X, crop_start_Y, crop_width, crop_height
 
 if __name__ == "__main__":
     # Example usage:
