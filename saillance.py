@@ -88,24 +88,28 @@ if __name__ == "__main__":
     interest_clusters = points_interets.interest_clusters(r)
 
     potential_crops = []
+    ratio = float(args.ratio)
 
     for i in range(len(interest_clusters)):
-        crop_tuple = recadrage.get_crop_tuple_one_center(float(args.ratio), r, initial_shape, interest_clusters[i])
+        crop_tuple = recadrage.get_crop_tuple_one_center(ratio, r, initial_shape, interest_clusters[i])
         potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
-    crop_tuple = recadrage.get_crop_tuple_using_least_square_distance_to_interest_points(float(args.ratio), r.shape, initial_shape, [i['centroid'] for i in interest_clusters])
+    crop_tuple = recadrage.get_crop_tuple_using_least_square_distance_to_interest_points(ratio, r.shape, initial_shape, [i['centroid'] for i in interest_clusters])
     potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
 
-    crop_tuple = recadrage.get_crop_tuple_least_square_distance_to_best_interest_points(float(args.ratio), r.shape, initial_shape, interest_clusters)
+    crop_tuple = recadrage.get_crop_tuple_least_square_distance_to_best_interest_points(ratio, r.shape, initial_shape, interest_clusters)
     potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
 
-    crop_tuple = recadrage.get_crop_tuple_using_1D_saliency(float(args.ratio), r, initial_shape)
+    crop_tuple = recadrage.get_crop_tuple_using_1D_saliency(ratio, r, initial_shape)
     potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
 
-    resi = Resize((256, 256), antialias=True)
+    crop_tuple = recadrage.get_crop_tuple_random(ratio, r, initial_shape)
+    potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
+
+    resize = Resize((256, 256), antialias=True)
 
     for i in range(len(potential_crops)):
         tmp = cv2.cvtColor(potential_crops[i], cv2.COLOR_BGR2RGB)
-        tens = resi.forward(torch.mul(transforms.ToTensor()(tmp), 255.0).type(torch.IntTensor).unsqueeze(0))
+        tens = resize.forward(torch.mul(transforms.ToTensor()(tmp), 255.0).type(torch.IntTensor).unsqueeze(0))
         potential_crops[i] = tens
     
     inp = torch.Tensor(len(potential_crops), 3, 256, 256)

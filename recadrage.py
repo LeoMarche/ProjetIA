@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from scipy.optimize import minimize
+import random
 
 def crop_image(image, crop_tuple):
     img = cv2.imread(image)
@@ -143,6 +144,35 @@ def get_crop_tuple_one_center(ratio, saliency_map, initial_shape, centroid_map):
     h = int(ideal_col_nr * initial_shape[0] / saliency_map.shape[1])
     
     return (x,y,w,h)
+
+def get_random_point_based_on_saliency(saliency_map):
+    rows, columns = np.where(saliency_map > 0)
+    points_array = np.asarray(list(zip(rows, columns)))
+    total_saliency = np.sum(saliency_map)
+    probabilities = [saliency_map[col][row] / total_saliency for row, col in points_array]
+    random_index = random.choices(points_array, probabilities)[0]
+    return points_array[random_index]
+
+# CASINO
+def get_crop_tuple_random(ratio, saliency_map, initial_shape):
+    random_point = get_random_point_based_on_saliency(saliency_map) # row, column
+    max_height = min(saliency_map.shape[0], int(saliency_map.shape[1] / ratio))
+    random_crop_height = int(random.uniform(0.5 * max_height, max_height))
+    random_crop_width = int(random_crop_height * ratio)
+    
+    crop_start_X, crop_start_Y = int(random_point[1] - random_crop_width / 2), int(random_point[0] - random_crop_height / 2)
+    
+    if random_point[1] + 1 > saliency_map.shape[1] - random_crop_width / 2:
+        crop_start_X = int(saliency_map.shape[1] - random_crop_width / 2 - 1)
+    elif random_point[1] + 1 > random_crop_width / 2:
+        crop_start_X = 0
+
+    if random_point[0] + 1 > saliency_map.shape[0] - random_crop_height / 2:
+        crop_start_Y = int(saliency_map.shape[0] - random_crop_height / 2 - 1)
+    elif random_point[0] + 1 > random_crop_height / 2:
+        crop_start_Y = 0
+
+    return crop_start_X, random_crop_width, crop_start_Y, random_crop_height
 
 if __name__ == "__main__":
     # Example usage:
