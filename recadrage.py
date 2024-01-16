@@ -91,6 +91,12 @@ def get_crop_tuple_using_least_square_distance_to_interest_points(ratio, salienc
 
     return (x, y, w, h)
 
+def get_crop_tuple_least_square_distance_to_best_interest_points(ratio, saliency_shape, initial_shape, centroids_data):
+    centroids_avg_saliency = np.array(map(lambda centroid: centroid['avg_saliency'], centroids_data))
+    best_interest_indexes = np.argpartition(centroids_avg_saliency, -3)[-3:]
+    best_centroids = [centroids_data[idx]['centroid'] for idx in best_interest_indexes]
+    return get_crop_tuple_using_least_square_distance_to_interest_points(ratio, saliency_shape, initial_shape, best_centroids)
+
 def compute_average_weighted_distance(points, weights, centroid):
     dist = 0
     for ipo in range(len(points)):

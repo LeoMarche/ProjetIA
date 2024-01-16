@@ -95,6 +95,9 @@ if __name__ == "__main__":
     crop_tuple = recadrage.get_crop_tuple_using_least_square_distance_to_interest_points(float(args.ratio), r.shape, initial_shape, [i['centroid'] for i in interest_clusters])
     potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
 
+    crop_tuple = recadrage.get_crop_tuple_least_square_distance_to_best_interest_points(float(args.ratio), r.shape, initial_shape, interest_clusters)
+    potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
+
     crop_tuple = recadrage.get_crop_tuple_using_1D_saliency(float(args.ratio), r, initial_shape)
     potential_crops.append(recadrage.crop_image(args.image, crop_tuple))
 
