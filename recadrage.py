@@ -71,7 +71,7 @@ def square_distance_sum(params, *args):
                 distance += ((Y2-YC)*YC**2-YC*(Y2**2-YC**2)+1/3*(Y2**3-YC**3)) / (Y2 - Y1)**2
         return np.sqrt(distance)
 
-def get_crop_tuple_using_least_square_distance_to_interest_points(ratio, saliency_shape, initial_shape, centroids):
+def get_crop_tuple_least_square_distance_to_interest_points(ratio, saliency_shape, initial_shape, centroids):
     c_scaled = []
     for c in centroids:
         c_scaled.append([c[0]*initial_shape[1]/saliency_shape[0], c[1]*initial_shape[0]/saliency_shape[1]])
@@ -97,7 +97,7 @@ def get_crop_tuple_least_square_distance_to_best_interest_points(ratio, saliency
     n_interest_points = min(2, len(centroids_avg_saliency))
     best_interest_indexes = np.argpartition(centroids_avg_saliency, -n_interest_points)[-n_interest_points:]
     best_centroids = [centroids_data[idx]['centroid'] for idx in best_interest_indexes]
-    return get_crop_tuple_using_least_square_distance_to_interest_points(ratio, saliency_shape, initial_shape, best_centroids)
+    return get_crop_tuple_least_square_distance_to_interest_points(ratio, saliency_shape, initial_shape, best_centroids)
 
 def compute_average_weighted_distance(points, weights, centroid):
     dist = 0
@@ -110,6 +110,7 @@ def get_crop_tuple_one_center(ratio, saliency_map, initial_shape, centroid_map):
     pixel_coords = centroid_map['pixel_coords']
     weights = [saliency_map[c[0]][c[1]] for c in pixel_coords]
     av_dist = compute_average_weighted_distance(pixel_coords, weights, centroid_map['centroid'])
+
     av_dist_ratio = av_dist * 5
 
     if ratio > 1:

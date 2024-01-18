@@ -31,13 +31,9 @@ class Net(nn.Module):
 
         return out
 
-## Returns either the cpu if nod GPU is available or the first CUDA capable device else
-def get_optimal_device():
-    return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
 ## Loads and return a Net with the given weights parametrized
 def load_premade_model(weight_path, device):
-    model  = Net()
+    model = Net()
     model.load_state_dict(torch.load(weight_path))
     model.eval()
     model.to(device)
