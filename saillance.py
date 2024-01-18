@@ -114,12 +114,9 @@ if __name__ == "__main__":
     
     inp = torch.Tensor(len(potential_crops), 3, 256, 256)
     torch.cat(potential_crops, out=inp)
-    print(inp[0].shape, potential_crops[0].shape)
 
     aes_model = aesthetics.load_premade_model(args.aesthetics_weights, device)
     res = aesthetics.inference_torch(aes_model, inp, device)
-
-    print(res)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()

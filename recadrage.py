@@ -110,9 +110,6 @@ def get_crop_tuple_one_center(ratio, saliency_map, initial_shape, centroid_map):
     pixel_coords = centroid_map['pixel_coords']
     weights = [saliency_map[c[0]][c[1]] for c in pixel_coords]
     av_dist = compute_average_weighted_distance(pixel_coords, weights, centroid_map['centroid'])
-    print(centroid_map['centroid'])
-    print(saliency_map.shape)
-    print(initial_shape)
     av_dist_ratio = av_dist * 5
 
     if ratio > 1:
@@ -180,12 +177,3 @@ def get_crop_tuple_random(ratio, saliency_map, initial_shape):
     crop_height = int(crop_height * rescale_ratio_Y)
 
     return crop_start_X, crop_start_Y, crop_width, crop_height
-
-if __name__ == "__main__":
-    # Example usage:
-    ratio = 0.1
-    crop_tuple = get_crop_tuple_using_least_square_distance_to_interest_points(1.7, (540, 960), (960, 540), [[344.12998125974815, 656.0959556507776], [157.68953265450583, 310.13154991381725]])
-    print(crop_tuple)
-    cv2.imshow("Image Recadrée", crop_image(r"..\..\Downloads\image-attractive-960x540.jpg", crop_tuple))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()

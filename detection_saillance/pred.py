@@ -23,8 +23,6 @@ model.to(device)
 r = Resize((480,640), antialias=True)
 img = r.forward(data).unsqueeze(0)
 
-print(img.size())
-
 img.to(device)
 
 res = model(img)

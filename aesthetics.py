@@ -40,23 +40,11 @@ def inference_torch(model, torch_images, device):
     else:
         inp = torch.div(r.forward(torch_images), 255.0).type(torch.FloatTensor)
     inp.to(device)
-    print(inp.shape)
     with torch.no_grad():
         res = model(inp)
-    print(res.shape)
     res = res.cpu()
     return res.squeeze().detach().numpy()
 
 def inference(model, image_path, device):
     img = read_image(image_path, ImageReadMode.RGB).unsqueeze(0)
-    print(img.shape)
     return inference_torch(model, img, device)
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("weights")
-    parser.add_argument("image")
-    args = parser.parse_args()
-    device = get_optimal_device()
-    model = load_premade_model(args.weights, device)
-    print(inference(model, args.image, device))
