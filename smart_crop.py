@@ -56,7 +56,9 @@ if __name__ == "__main__":
 
     centroids = [i['centroid'] for i in interest_clusters]
     add_potential_crop(recadrage.get_crop_tuple_least_square_distance_to_interest_points(ratio, saliency_map.shape, initial_shape, centroids))
-    add_potential_crop(recadrage.get_crop_tuple_least_square_distance_to_best_interest_points(ratio, saliency_map.shape, initial_shape, interest_clusters))
+    n_best_interest_points = 2
+    if n_best_interest_points < len(centroids):
+        add_potential_crop(recadrage.get_crop_tuple_least_square_distance_to_best_interest_points(ratio, saliency_map.shape, initial_shape, interest_clusters, n_best_interest_points))
     add_potential_crop(recadrage.get_crop_tuple_using_1D_saliency(ratio, saliency_map, initial_shape))
     add_potential_crop(recadrage.get_crop_tuple_random(ratio, saliency_map, initial_shape))
 

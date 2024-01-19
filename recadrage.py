@@ -92,10 +92,9 @@ def get_crop_tuple_least_square_distance_to_interest_points(ratio, saliency_shap
 
     return (x, y, w, h)
 
-def get_crop_tuple_least_square_distance_to_best_interest_points(ratio, saliency_shape, initial_shape, centroids_data):
+def get_crop_tuple_least_square_distance_to_best_interest_points(ratio, saliency_shape, initial_shape, centroids_data, n_best_interest_points):
     centroids_avg_saliency = np.array(list(map(lambda centroid: centroid['avg_saliency'], centroids_data)))
-    n_interest_points = min(2, len(centroids_avg_saliency))
-    best_interest_indexes = np.argpartition(centroids_avg_saliency, -n_interest_points)[-n_interest_points:]
+    best_interest_indexes = np.argpartition(centroids_avg_saliency, -n_best_interest_points)[-n_best_interest_points:]
     best_centroids = [centroids_data[idx]['centroid'] for idx in best_interest_indexes]
     return get_crop_tuple_least_square_distance_to_interest_points(ratio, saliency_shape, initial_shape, best_centroids)
 
