@@ -1,12 +1,9 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torchvision.models as models
-from functools import partial
 from torchvision.io import read_image
 from torchvision.transforms import Resize
 from torchvision.io import ImageReadMode
-import argparse
 
 ## Returns either the cpu if nod GPU is available or the first CUDA capable device else
 def get_optimal_device():

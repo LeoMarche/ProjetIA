@@ -9,10 +9,21 @@ import numpy as np
 import cv2
 import torchvision.transforms as transforms
 import torch
+import os
+import datetime
 
 ## Returns either the cpu if nod GPU is available or the first CUDA capable device else
 def get_optimal_device():
     return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+def save_crops(crops):
+    if not(os.path.isdir("./output")):
+        os.mkdir("./output")
+    time = datetime.datetime.now()
+    datetime_string = time.strftime("%d_%m_%Y_%H_%M_%S")
+    for crop_idx in range(len(crops)):
+        filename = "./output/output-" + datetime_string + "-choix" + str(crop_idx + 1) + ".jpg"
+        cv2.imwrite(filename, crops[crop_idx])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -49,6 +60,8 @@ if __name__ == "__main__":
     add_potential_crop(recadrage.get_crop_tuple_using_1D_saliency(ratio, saliency_map, initial_shape))
     add_potential_crop(recadrage.get_crop_tuple_random(ratio, saliency_map, initial_shape))
 
+    crop_images = potential_crops[:]
+
     resize = transforms.Resize((256, 256), antialias=True)
 
     for interest_cluster in range(len(potential_crops)):
@@ -61,6 +74,8 @@ if __name__ == "__main__":
 
     aes_model = aesthetics.load_premade_model(args.aesthetics_weights, device)
     res = aesthetics.inference_torch(aes_model, inp, device)
+
+    save_crops(crop_images)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()

@@ -2,3 +2,4 @@ detection_saillance/dataset
 aesthetics_pred/dataset
 __pycache__
 *.pth
+output
