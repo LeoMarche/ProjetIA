@@ -16,13 +16,15 @@ import datetime
 def get_optimal_device():
     return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def save_crops(crops):
+def save_crops(crops, aesthetics_scores):
     if not(os.path.isdir("./output")):
         os.mkdir("./output")
     time = datetime.datetime.now()
     datetime_string = time.strftime("%d_%m_%Y_%H_%M_%S")
     for crop_idx in range(len(crops)):
-        filename = "./output/output-" + datetime_string + "-choix" + str(crop_idx + 1) + ".jpg"
+        filename = "./output/output-" + datetime_string 
+        filename += "-choix" + str(crop_idx + 1)
+        filename += "-" + str(aesthetics_scores[crop_idx]) + ".jpg"
         cv2.imwrite(filename, crops[crop_idx])
 
 if __name__ == "__main__":
@@ -75,9 +77,9 @@ if __name__ == "__main__":
     torch.cat(potential_crops, out=inp)
 
     aes_model = aesthetics.load_premade_model(args.aesthetics_weights, device)
-    res = aesthetics.inference_torch(aes_model, inp, device)
+    aesthetics_scores = aesthetics.inference_torch(aes_model, inp, device)
 
-    save_crops(crop_images)
+    save_crops(crop_images, aesthetics_scores)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
