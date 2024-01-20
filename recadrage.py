@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from scipy.optimize import minimize
+import random
 
 def crop_image(image, crop_tuple):
     img = cv2.imread(image)
@@ -70,7 +71,7 @@ def square_distance_sum(params, *args):
                 distance += ((Y2-YC)*YC**2-YC*(Y2**2-YC**2)+1/3*(Y2**3-YC**3)) / (Y2 - Y1)**2
         return np.sqrt(distance)
 
-def get_crop_tuple_using_least_square_distance_to_interest_points(ratio, saliency_shape, initial_shape, centroids):
+def get_crop_tuple_least_square_distance_to_interest_points(ratio, saliency_shape, initial_shape, centroids):
     c_scaled = []
     for c in centroids:
         c_scaled.append([c[0]*initial_shape[1]/saliency_shape[0], c[1]*initial_shape[0]/saliency_shape[1]])
@@ -91,6 +92,12 @@ def get_crop_tuple_using_least_square_distance_to_interest_points(ratio, salienc
 
     return (x, y, w, h)
 
+def get_crop_tuple_least_square_distance_to_best_interest_points(ratio, saliency_shape, initial_shape, centroids_data, n_best_interest_points):
+    centroids_avg_saliency = np.array(list(map(lambda centroid: centroid['avg_saliency'], centroids_data)))
+    best_interest_indexes = np.argpartition(centroids_avg_saliency, -n_best_interest_points)[-n_best_interest_points:]
+    best_centroids = [centroids_data[idx]['centroid'] for idx in best_interest_indexes]
+    return get_crop_tuple_least_square_distance_to_interest_points(ratio, saliency_shape, initial_shape, best_centroids)
+
 def compute_average_weighted_distance(points, weights, centroid):
     dist = 0
     for ipo in range(len(points)):
@@ -102,9 +109,7 @@ def get_crop_tuple_one_center(ratio, saliency_map, initial_shape, centroid_map):
     pixel_coords = centroid_map['pixel_coords']
     weights = [saliency_map[c[0]][c[1]] for c in pixel_coords]
     av_dist = compute_average_weighted_distance(pixel_coords, weights, centroid_map['centroid'])
-    print(centroid_map['centroid'])
-    print(saliency_map.shape)
-    print(initial_shape)
+
     av_dist_ratio = av_dist * 5
 
     if ratio > 1:
@@ -138,11 +143,37 @@ def get_crop_tuple_one_center(ratio, saliency_map, initial_shape, centroid_map):
     
     return (x,y,w,h)
 
-if __name__ == "__main__":
-    # Example usage:
-    ratio = 0.1
-    crop_tuple = get_crop_tuple_using_least_square_distance_to_interest_points(1.7, (540, 960), (960, 540), [[344.12998125974815, 656.0959556507776], [157.68953265450583, 310.13154991381725]])
-    print(crop_tuple)
-    cv2.imshow("Image Recadrée", crop_image(r"..\..\Downloads\image-attractive-960x540.jpg", crop_tuple))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+def get_random_point_based_on_saliency(saliency_map):
+    rows, columns = np.where(saliency_map > 0)
+    points_array = np.asarray(list(zip(rows, columns)))
+    total_saliency = np.sum(saliency_map)
+    probabilities = [saliency_map[row][col] / total_saliency for row, col in points_array]
+    return random.choices(points_array, probabilities)[0]
+
+def get_crop_tuple_random(ratio, saliency_map, initial_shape):
+    random_point = get_random_point_based_on_saliency(saliency_map) # row, column
+    max_width = min(saliency_map.shape[0], int(saliency_map.shape[1] / ratio))
+    crop_width = int(random.uniform(0.5 * max_width, max_width))
+    crop_height = int(crop_width * ratio)
+    
+    crop_start_X, crop_start_Y = int(random_point[0] - crop_width / 2), int(random_point[1] - crop_height / 2)
+
+    if random_point[0] + 1 > saliency_map.shape[0] - crop_width / 2:
+        crop_start_X = int(saliency_map.shape[0] - crop_width - 1)
+    elif random_point[0] + 1 < crop_width / 2:
+        crop_start_X = 0
+
+    if random_point[1] + 1 > saliency_map.shape[1] - crop_height / 2:
+        crop_start_Y = int(saliency_map.shape[1] - crop_height - 1)
+    elif random_point[1] + 1 < crop_height / 2:
+        crop_start_Y = 0
+
+    rescale_ratio_X = initial_shape[1] / saliency_map.shape[0]
+    rescale_ratio_Y = initial_shape[0] / saliency_map.shape[1]
+
+    crop_start_X = int(crop_start_X * rescale_ratio_X)
+    crop_start_Y = int(crop_start_Y * rescale_ratio_Y)
+    crop_width = int(crop_width * rescale_ratio_X)
+    crop_height = int(crop_height * rescale_ratio_Y)
+
+    return crop_start_X, crop_start_Y, crop_width, crop_height
