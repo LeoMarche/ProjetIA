@@ -28,6 +28,10 @@ The weights are available [here](https://github.com/LeoMarche/ProjetIA/releases/
 python3 smart_crop2.py premade.pth test.jpg 1.5
 python3 smart_crop3.py premade.pth test.jpg 1.5
 
+## Comparing Algorithms time of execution:
+it's not fixed , it's changes 
+
+
 
 ## How to use the final product
 
