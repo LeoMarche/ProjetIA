@@ -27,7 +27,7 @@ This can be executed in a venv in order to limit these packages to a venv.
 ## Retrieve weights
 
 In order for the algorithm to work, one must first retrieve the weights of the saliency detection neural network and the aesthetics scoring neural network.
-The weights are available [here](https://github.com/LeoMarche/ProjetIA/releases/download/poc/saliency.pth) and [here](https://github.com/LeoMarche/ProjetIA/releases/download/poc/aesthetics.pth).
+The weights are available [here](https://github.com/LeoMarche/ProjetIA/releases/download/rendu/saliency.pth) and [here](https://github.com/LeoMarche/ProjetIA/releases/download/rendu/aesthetics.pth).
 
 ## How to use the final product
 
