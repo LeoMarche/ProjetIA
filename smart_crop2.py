@@ -36,6 +36,7 @@ if __name__ == "__main__":
 
     device = get_optimal_device()
     model = saillance2.load_premade_model(args.feature_det_weights, device)
+
     saliency_map, initial_shape = saillance2.inference(model, args.image, device)
     saliency_map = saliency_map * (255 / np.max(saliency_map))
     saliency_map = (saliency_map > 50) * saliency_map
