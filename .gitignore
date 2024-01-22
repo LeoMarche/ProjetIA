@@ -3,3 +3,5 @@ aesthetics_pred/dataset
 __pycache__
 *.pth
 output
+output2
+output3
