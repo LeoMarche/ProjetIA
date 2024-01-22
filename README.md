@@ -25,8 +25,8 @@ The weights are available [here](https://github.com/LeoMarche/ProjetIA/releases/
 
 ## Testing the Cropping Modules
 3 cropping files are proposed : 2 are tested for testing Functional Cropping the third is in the part of " How to use the final product"
-python3 smart_crop2.py premade.pth test.jpg 1.5
-python3 smart_crop3.py premade.pth test.jpg 1.5
+-python3 smart_crop2.py premade.pth test.jpg 1.5
+-python3 smart_crop3.py premade.pth test.jpg 1.5
 
 ## Comparing Algorithms time of execution:
 it's not fixed , it's changes 
