@@ -23,7 +23,13 @@ This can be executed in a venv in order to limit these packages to a venv.
 In order for the algorithm to work, one must first retrieve the weights of the saliency detection neural network and the aesthetics scoring neural network.
 The weights are available [here](https://github.com/LeoMarche/ProjetIA/releases/download/poc/premade.pth) and here (TODO upload and insert link).
 
-## How to use
+## Testing the Cropping Modules
+3 cropping files are proposed : 2 are tested for testing Functional Cropping the third is in the part of " How to use the final product"
+python3 smart_crop2.py premade.pth test.jpg 1.5
+python3 smart_crop3.py premade.pth test.jpg 1.5
+
+
+## How to use the final product
 
 Once the dependencies installed, run `python3 smart_crop.py <path_to_saliency_weights> <path_to_aesthetics_weights> <path_to_image> <resize_ratio>`  
 It will make windows appear to show intermediate results, close them to continue the algorithm
